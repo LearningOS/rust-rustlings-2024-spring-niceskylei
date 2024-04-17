@@ -1,9 +1,3 @@
-/*
-	heap
-	This question requires you to implement a binary heap function
-*/
-// I AM NOT DONE
-
 use std::cmp::Ord;
 use std::default::Default;
 
@@ -18,7 +12,7 @@ where
 
 impl<T> Heap<T>
 where
-    T: Default,
+    T: Default + Ord,
 {
     pub fn new(comparator: fn(&T, &T) -> bool) -> Self {
         Self {
@@ -37,7 +31,9 @@ where
     }
 
     pub fn add(&mut self, value: T) {
-        //TODO
+        self.count += 1;
+        self.items.push(value);
+        self.sift_up(self.count);
     }
 
     fn parent_idx(&self, idx: usize) -> usize {
@@ -57,8 +53,30 @@ where
     }
 
     fn smallest_child_idx(&self, idx: usize) -> usize {
-        //TODO
-		0
+        let left_child_idx = self.left_child_idx(idx);
+        let right_child_idx = self.right_child_idx(idx);
+
+        if left_child_idx > self.count {
+            0
+        } else if right_child_idx > self.count {
+            left_child_idx
+        } else {
+            let left_child = &self.items[left_child_idx];
+            let right_child = &self.items[right_child_idx];
+            if (self.comparator)(left_child, right_child) {
+                left_child_idx
+            } else {
+                right_child_idx
+            }
+        }
+    }
+
+    fn sift_up(&mut self, mut idx: usize) {
+        while idx > 1 && (self.comparator)(&self.items[idx], &self.items[self.parent_idx(idx)]) {
+            let parent_idx = self.parent_idx(idx);
+            self.items.swap(idx, parent_idx);
+            idx = self.parent_idx(idx);
+        }
     }
 }
 
@@ -79,20 +97,52 @@ where
 
 impl<T> Iterator for Heap<T>
 where
-    T: Default,
+    T: Default + Ord,
 {
     type Item = T;
 
     fn next(&mut self) -> Option<T> {
-        //TODO
-		None
+        if self.is_empty() {
+            None
+        } else {
+            Some(self.remove_root())
+        }
+    }
+}
+
+impl<T> Heap<T>
+where
+    T: Default + Ord,
+{
+    fn remove_root(&mut self) -> T {
+        if self.count == 0 {
+            panic!("Cannot remove root from an empty heap");
+        }
+        self.items.swap(1, self.count);
+        let root = self.items.pop().unwrap();
+        self.count -= 1;
+        if self.count > 0 {
+            self.sift_down(1);
+        }
+        root
+    }
+
+    fn sift_down(&mut self, mut idx: usize) {
+        while self.children_present(idx) {
+            let min_child_idx = self.smallest_child_idx(idx);
+            if (self.comparator)(&self.items[min_child_idx], &self.items[idx]) {
+                self.items.swap(min_child_idx, idx);
+                idx = min_child_idx;
+            } else {
+                break;
+            }
+        }
     }
 }
 
 pub struct MinHeap;
 
 impl MinHeap {
-    #[allow(clippy::new_ret_no_self)]
     pub fn new<T>() -> Heap<T>
     where
         T: Default + Ord,
@@ -104,7 +154,6 @@ impl MinHeap {
 pub struct MaxHeap;
 
 impl MaxHeap {
-    #[allow(clippy::new_ret_no_self)]
     pub fn new<T>() -> Heap<T>
     where
         T: Default + Ord,
@@ -116,6 +165,7 @@ impl MaxHeap {
 #[cfg(test)]
 mod tests {
     use super::*;
+
     #[test]
     fn test_empty_heap() {
         let mut heap = MaxHeap::new::<i32>();

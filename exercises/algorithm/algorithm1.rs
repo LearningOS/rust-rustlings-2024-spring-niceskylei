@@ -72,7 +72,7 @@ impl<T> LinkedList<T> {
         NodeIterator(self.start)
     }
 }
-impl<T: PartialOrd> LinkedList<T> {
+impl<T: Ord> LinkedList<T> {
     pub fn merge(list_a: LinkedList<T>, list_b: LinkedList<T>) -> Self {
         let mut out = LinkedList::<T>::new();
         let mut iter_a = list_a.into_iter();
