@@ -1,5 +1,3 @@
-#![feature(iterator_try_collect)]
-
 // iterators3.rs
 //
 // This is a bigger exercise than most of the others! You can do it! Here is
@@ -44,7 +42,14 @@ pub fn divide(a: i32, b: i32) -> Result<i32, DivisionError> {
 fn result_with_list() -> Result<Vec<i32>, DivisionError> {
     let numbers = vec![27, 297, 38502, 81];
     let mut division_results = numbers.into_iter().map(|n| divide(n, 27));
-    division_results.try_collect()
+    let mut out = Vec::with_capacity(division_results.len());
+    for res in division_results {
+        match res {
+            Ok(n) => out.push(n),
+            Err(e) => return Err(e),
+        }
+    }
+    Ok(out)
 }
 
 // Complete the function and return a value of the correct type so the test

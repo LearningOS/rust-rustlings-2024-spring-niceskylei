@@ -1,5 +1,3 @@
-#![feature(option_take_if)]
-
 /*
     single linked list merge
     This problem requires you to merge two ordered singly linked lists into one ordered singly linked list
@@ -79,19 +77,18 @@ impl<T: Ord> LinkedList<T> {
         let mut iter_b = list_b.into_iter();
         let mut next_a = iter_a.next();
         let mut next_b = iter_b.next();
-        let mut take_a;
-        let mut take_b;
+        let mut take_a = None;
+        let mut take_b = None;
         loop {
-            take_b = if next_a.is_none() {
-                next_b.take()
+            if next_a
+                .as_ref()
+                .is_some_and(|a| next_b.is_none() || next_b.as_ref().is_some_and(|b| a <= b))
+            {
+                take_a = next_a.take()
             } else {
-                None
+                take_b = next_b.take()
             };
-            take_a = next_a.take_if(|a| {
-                take_b = next_b.take_if(|b| *a > *b);
-                take_b.is_none()
-            });
-            match (take_a, take_b) {
+            match (take_a.take(), take_b.take()) {
                 (Some(a), None) => {
                     out.add(a);
                     next_a = iter_a.next();
